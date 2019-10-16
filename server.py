@@ -13,55 +13,78 @@ AWESOMENESS = [
     'oh-so-not-meh', 'brilliant', 'ducky', 'coolio', 'incredible',
     'wonderful', 'smashing', 'lovely']
 
+COMPLIMENTS = {'low': ['ducky', 'coolio', 'wowza', 'oh-so-not-meh', 'neato'],
+               'mid': ['smashing', 'lovely', 'wonderful', 'alright', 'okay'],
+               'high': ['awesome', 'brilliant', 'terrific', 'fantastic', 
+                        'fantabulous', 'incredible']
+}
+
+DISSES = {'low': ['mean', 'grumpy', 'bad', 'foolish', 'sickly'],
+          'mid': ['a liar', 'cowardly', 'dumb', 'a worm'],
+          'high': ['hateful', 'repulsive', 'toxic']
+}
+  
 
 @app.route("/")
 def start_here():
     """Home page."""
 
     return """<!doctype html><html>Hi! This is the home page.
-              <br>Click here! <a href="/hello">Hello page</a>
+            <br>
+            <form action="/hello">
+            Do you want a compliment or diss?
+            <input type="radio" name="choice" value="compliment">Compliment
+            <input type="radio" name="choice" value="diss">Diss
+            <br>
+            What level do you want?
+            <input type="radio" name="level" value="low">Low
+            <input type="radio" name="level" value="mid">Mid
+            <input type="radio" name="level" value="high">High
+            <br>
+            <input type="submit">
             </html>"""
 
 
-@app.route("/hello")
-def say_hello():
-    """Say hello and prompt for user's name."""
-
-    return """
+def make_form(choice, level):
+  """Return a html for in a string format."""
+  string = """
     <!doctype html>
     <html>
       <head>
         <title>Hi There!</title>
       </head>
       <body>
-        <h1>Hi There!</h1>
-        <form action="/greet">
+        <h1>Hi There!</h1> """
+  if choice == 'compliment':
+    string += """<form action="/greet">
           Our Compliment Form:<br>
           What's your name? <input type="text" name="person"><br>
-          Compliment: 
-          <input type="radio" name="compliment" value="chill">Chill
-          <input type="radio" name="compliment" value="smart">Smart
-          <input type="radio" name="compliment" value="kind">Kind
-          <input type="radio" name="compliment" value="considerate">Considerate
-          <input type="radio" name="compliment" value="pretty">Pretty
-          <input type="radio" name="compliment" value="happy">Happy
-          <br>
-          <input type="submit" value="Submit">
-        </form>
-        <br><br><br>
-        <form action="/diss">
+          Compliment: """
+    dictionary = COMPLIMENTS
+  else:
+    string += """<form action="/diss">
           Our Mean Form:<br>
           What's your name? <input type="text" name="person"><br>
-          Mean: 
-          <input type="radio" name="diss" value="mean">Mean
-          <input type="radio" name="diss" value="hateful">Hateful
-          <input type="radio" name="diss" value="grumpy">Grumpy
-          <br>
-          <input type="submit" value="Submit">
-        </form>
-      </body>
-    </html>
-    """
+          Mean: """
+    dictionary = DISSES
+  for word in dictionary[level]:
+    string += f"""<input type="radio" name="greeting" value="{word}">{word.title()}"""
+  string += """<br> <input type="submit" value="Submit">
+              </form>
+              </body>
+              </html>
+              """
+  return string
+
+
+@app.route("/hello")
+def say_hello():
+    """Say hello and prompt for user's name."""
+
+    choice = request.args.get("choice")
+    level = request.args.get("level")
+
+    return make_form(choice, level)
 
 
 @app.route("/greet")
@@ -69,7 +92,7 @@ def greet_person():
     """Get user by name."""
 
     player = request.args.get("person")
-    compliment = request.args.get("compliment")
+    compliment = request.args.get("greeting")
 
     # compliment = choice(AWESOMENESS)
     # y = x
@@ -92,7 +115,7 @@ def diss_person():
   """Diss the user."""
 
   player = request.args.get("person")
-  diss = request.args.get("diss")
+  diss = request.args.get("greeting")
 
   return """
   <!doctype html>
